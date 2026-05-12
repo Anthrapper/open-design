@@ -1,6 +1,6 @@
 # Docker deployment
 
-This deployment ships Open Design as a single Alpine-based runtime image. The
+This deployment ships Open Design as a single Debian-based runtime image. The
 daemon serves both the API and the built Next.js static export, so there is no
 separate nginx container.
 
@@ -37,9 +37,21 @@ Pin a specific published image with a digest instead of the mutable `latest` tag
 ```bash
 OPEN_DESIGN_IMAGE=docker.io/vanjayak/open-design@sha256:<digest> docker compose up -d --no-build
 ```
-The image intentionally does not bundle Claude/Codex/Gemini CLI binaries. Keep
-those outside the image, or build a separate private runtime layer if a server
-deployment needs local code-agent CLIs installed in the container.
+The image bundles OpenCode (`opencode-ai`) as the default coding-agent CLI.
+The daemon automatically detects it on PATH and can spawn it as the design
+engine. The runtime stage uses Debian-based `node:24-slim` for glibc
+compatibility — the `opencode-ai` npm package requires glibc and does not
+support Alpine Linux musl (see [anomalyco/opencode#9571][oc-musl-issue]).
+
+**Runtime notes.** The container runs with `read_only: true` and the
+`open-design` user has no home directory. When the daemon spawns OpenCode,
+its working directory is set to the project folder under `/app/.od/projects/<id>/`
+(on the writable `open_design_data` volume). OpenCode may attempt to write
+config to `~/.config/opencode/` — if that fails the daemon's agent runtime
+falls back to the BYOK proxy path with an API key provided through the UI.
+To avoid this, set `HOME=/tmp` or mount a writable config volume.
+
+[oc-musl-issue]: https://github.com/anomalyco/opencode/issues/9571
 
 ## Publish to Docker Hub
 

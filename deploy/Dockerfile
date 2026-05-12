@@ -1,5 +1,5 @@
 ARG NODE_IMAGE=docker.io/library/node:24-alpine
-ARG RUNTIME_IMAGE=docker.io/library/node:24-alpine
+ARG RUNTIME_IMAGE=docker.io/library/node:24-slim
 
 FROM ${NODE_IMAGE} AS build
 
@@ -68,9 +68,14 @@ RUN pnpm --filter @open-design/daemon build && \
 
 FROM ${RUNTIME_IMAGE}
 
-RUN apk add --no-cache tini && \
-    addgroup -S -g 1001 open-design && \
-    adduser -S -D -H -u 1001 -G open-design open-design
+RUN apt-get update && apt-get install -y --no-install-recommends tini && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd --system --gid 1001 open-design && \
+    useradd --system --no-create-home --uid 1001 --gid open-design open-design
+
+# Install OpenCode globally so the daemon's PATH scanner detects it
+RUN npm install -g opencode-ai && \
+    npm cache clean --force
 
 WORKDIR /app
 COPY --from=build --chown=open-design:open-design /app/deploy/daemon ./apps/daemon
@@ -93,5 +98,5 @@ ENV OD_PORT=7456
 EXPOSE 7456
 
 USER open-design
-ENTRYPOINT ["/sbin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["node", "apps/daemon/dist/cli.js", "--no-open"]

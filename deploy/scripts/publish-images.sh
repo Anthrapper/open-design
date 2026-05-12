@@ -8,7 +8,7 @@ REGISTRY="${REGISTRY:-docker.io}"
 IMAGE_NAMESPACE="${IMAGE_NAMESPACE:-vanjayak}"
 IMAGE_REPOSITORY="${IMAGE_REPOSITORY:-open-design}"
 NODE_BASE_IMAGE="${NODE_BASE_IMAGE:-docker.io/library/node:24-alpine}"
-RUNTIME_BASE_IMAGE="${RUNTIME_BASE_IMAGE:-docker.io/library/node:24-alpine}"
+RUNTIME_BASE_IMAGE="${RUNTIME_BASE_IMAGE:-docker.io/library/node:24-slim}"
 PUSH_STRATEGY="${PUSH_STRATEGY:-skopeo}"
 PRELOAD_BASE_IMAGES="${PRELOAD_BASE_IMAGES:-1}"
 DRY_RUN="${DRY_RUN:-0}"
@@ -108,7 +108,7 @@ Options:
   --image_repository <name>       default: open-design
   --image <image-ref>             override full image ref
   --node_base_image <image-ref>   default: docker.io/library/node:24-alpine
-  --runtime_base_image <image-ref> default: docker.io/library/node:24-alpine
+  --runtime_base_image <image-ref> default: docker.io/library/node:24-slim
   --push_strategy <skopeo|buildx> default: skopeo
   --preload_base_images <0|1>     default: 1
   --skopeo_authfile <path>        default: ~/.docker/config.json
@@ -279,7 +279,7 @@ runtime_local_base_image() {
   local platform="$1"
   local arch
   arch="$(platform_to_arch "$platform")" || die "unsupported platform '$platform'"
-  printf 'open-design-runtime-base:24-alpine-%s' "$arch"
+  printf 'open-design-runtime-base:24-slim-%s' "$arch"
 }
 
 node_image_for_platform() {
