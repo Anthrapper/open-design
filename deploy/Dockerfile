@@ -1,4 +1,4 @@
-ARG NODE_IMAGE=docker.io/library/node:24-alpine
+ARG NODE_IMAGE=docker.io/library/node:24-slim
 ARG RUNTIME_IMAGE=docker.io/library/node:24-slim
 
 FROM ${NODE_IMAGE} AS build
@@ -18,7 +18,8 @@ ENV no_proxy=${no_proxy}
 ENV NO_PROXY=${NO_PROXY}
 ENV CI=true
 
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
